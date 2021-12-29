@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Simple Application
+        </title>
+    </head>
+    <body>
+        <div class="container">
+            <h1>
+                Flask Application
+            </h1>  
+        <form method="post">  
+            <label>Name: </label>
+            <br>
+            <input type="text" placeholder="Name"
+            name="name">
+            <br>
+            <label>Question: </label>
+            <br>
+            <textarea name="question" placeholder="Question"  cols="20" rows="5"></textarea>
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+        </div>
+        <br>
+        <div class="container-questions">
+        <table class="tables">
+            <thead class="table-header">
+                <tr>
+                    <th scope='col'>Name</th>
+                    <th scope='col'>Question</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in val_questions %}
+                <tr>
+                    <td>{{ q.Name }}</td>
+                    <td>{{ q.Question }}</td>
+                    <td>
+                        <a href="{{ url_for('get_answers',qid=q.id)}}" class="btn-answer" role="button">
+                            Answer
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('update_qs',name=q.Name,qs=q.Question) }}" class="btn-edit" role="button">
+                            Edit
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('delete_qs',name=q.Name,qs=q.Question) }}" class="btn-delete" role="button">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </body>
+</html>

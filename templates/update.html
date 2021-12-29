@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        Simple Application
+    </title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            Flask Application
+        </h1>
+        <form method="post" action="{{ url_for('update_qs',name=update_data.Name,qs=update_data.Question )}}">
+            <label>Question: </label>
+            <br>
+            <textarea name="question" placeholder="Question" cols="20" rows="5"></textarea>
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
