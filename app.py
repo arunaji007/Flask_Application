@@ -1,8 +1,6 @@
-from flask import Flask, render_template, redirect, url_for, session, request, flash
-
-from flask_mysqldb import MySQL
-
 import MySQLdb.cursors
+from flask_mysqldb import MySQL
+from flask import Flask, render_template, redirect, url_for, session, request, flash
 
 
 app = Flask(__name__)
@@ -15,7 +13,7 @@ app.config['MYSQL_HOST'] = 'localhost'
 
 app.config['MYSQL_USER'] = 'root'
 
-app.config['MYSQL_PASSWORD'] = '601msdZIVA'
+app.config['MYSQL_PASSWORD'] = ''
 
 app.config['MYSQL_DB'] = 'devops'
 
