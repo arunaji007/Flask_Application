@@ -4,6 +4,21 @@
         <title>
             Simple Application
         </title>
+        <style>
+         ul { 
+            padding: 0px;
+            }
+        li {
+            float: left;
+            width: 80px;
+            list-style: outside none none;
+            }
+            .container
+            {
+                text-align: center;
+            }
+        
+        </style>
     </head>
     <body>
         <div class="container">
@@ -24,7 +39,8 @@
         </form>
         </div>
         <br>
-        <div class="container-questions">
+        <div class="container questions">
+    
         <table class="tables">
             <thead class="table-header">
                 <tr>
@@ -56,6 +72,9 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class='Pages'>
+        {{ pagination.links }}
+        </div>
         </div>
     </body>
 </html>
