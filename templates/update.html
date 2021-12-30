@@ -13,9 +13,13 @@
             Flask Application
         </h1>
         <form method="post" action="{{ url_for('update_qs',name=update_data.Name,qs=update_data.Question )}}">
+            <label>Name: </label>
+            <br>
+            <input type="text" placeholder="Name" name="name">
+            <br>
             <label>Question: </label>
             <br>
-            <textarea name="question" placeholder="Question" cols="20" rows="5"></textarea>
+            <textarea name="question" placeholder="Question" cols="20" rows="5">{{update_data.Question}}</textarea>
             <br>
             <button type="submit">Submit</button>
         </form>

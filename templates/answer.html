@@ -16,6 +16,9 @@
     <h1>
         Flask Application
     </h1>
+    <h4>Question: {{ques.Question}}</h2>
+    
+    <br>
     <form method="post" action="{{ url_for('get_answers',qid=qid) }}">
         <label>Name: </label>
         <br>
@@ -39,14 +42,28 @@
             </tr>
         </thead>
         <tbody>
+            {% if not data.vars %}
             {% for q in data %}
             <tr>
                 <td>{{ q.Name }}</td>
                 <td>{{ q.Answers }}</td>
+                    <td>
+                        <a href="{{ url_for('update_as', ans=q.Answers,name=q.Name,id=qid,qid=update_data.qid) }}" class="btn-edit" role="button">
+                            Edit
+                        </a>
+                    </td>
+                    <td>/
+                        <a href="#" class="btn-delete" role="button">
+                            Delete
+                        </a>
+                    </td>
+
             </tr>
             {% endfor %}
+            {% endif %}
         </tbody>
     </table>
+    
 </div>
 </body>
 

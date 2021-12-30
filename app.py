@@ -13,7 +13,7 @@ app.config['MYSQL_HOST'] = 'localhost'
 
 app.config['MYSQL_USER'] = 'root'
 
-app.config['MYSQL_PASSWORD'] = '601msdZIVA'
+app.config['MYSQL_PASSWORD'] = ''
 
 app.config['MYSQL_DB'] = 'devops'
 
@@ -100,13 +100,14 @@ def update_qs(name, qs):
         per_page = 3
         page = request.args.get(get_page_parameter(), type=int, default=1)
         offset = (page - 1) * per_page
-        q = request.args.get('q')
+
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("SELECT * FROM question")
         total = cursor.fetchall()
+        as1 = request.form['name']
         qs1 = request.form['question']
         cursor.execute(
-            'UPDATE question SET  Question = %s where  Name = %s and Question = %s ', (qs1, update_data['Name'], update_data['Question']))
+            'UPDATE question SET  Question = %s, Name = %s where  Name = %s and Question = %s ', (qs1, as1, update_data['Name'], update_data['Question']))
         mysql.connection.commit()
         cursor.execute(
             'SELECT * FROM question order by q_date desc LIMIT %s OFFSET %s', (per_page, offset))
@@ -119,33 +120,63 @@ def update_qs(name, qs):
 
 @app.route("/<int:qid>/answer", methods=('POST', 'GET'))
 def get_answers(qid):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.   DictCursor)
+    cursor.execute(
+        'SELECT id,Name, Answers FROM answers where qid = %s', (str(qid)))
+    update_data = cursor.fetchone()
     if request.method == 'POST':
-        per_page = 3
-        page = request.args.get(get_page_parameter(), type=int, default=1)
-        offset = (page - 1) * per_page
-        q = request.args.get('q')
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("SELECT * FROM question")
-        total = cursor.fetchall()
-        answer = request.form.get('answer')
-        name = request.form.get('name')
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        ns1 = request.form['name']
+        as1 = request.form['answer']
         cursor.execute(
-            'INSERT INTO answers (Name, Answers, qid)VALUES(%s,%s,%s)', (name, answer, qid))
+            'INSERT into answers(Name, Answers, qid) values(%s,%s,%s) ', (ns1, as1, qid))
         mysql.connection.commit()
         cursor.execute(
-            'SELECT * FROM question order by q_date desc LIMIT %s OFFSET %s', (per_page, offset))
-        question = cursor.fetchall()
-        pagination = Pagination(page=page, per_page=per_page,
-                                offset=offset, total=len(total))
-        return render_template('index.html', val_questions=question, pagination=pagination)
+            'SELECT * FROM answers order by a_date desc ')
+        answer = cursor.fetchall()
+        cursor.execute(
+            'SELECT Question FROM question where id = %s ', str(qid))
+        ques = cursor.fetchone()
+        print(answer)
+        update_data['qid'] = qid
+        return render_template('answer.html', data=answer, qid=qid, ques=ques, update_data=update_data)
+
+    update_data['qid'] = qid
+
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    print(type(qid))
     cursor.execute(
-        'SELECT Name, Answers FROM answers where qid = %s order by a_date desc', str(qid))
+        'SELECT id,Name, Answers FROM answers where qid = %s order by a_date desc', str(qid))
     data = cursor.fetchall()
-    print(data)
-    return render_template('answer.html', data=data, qid=qid)
+    cursor.execute(
+        'SELECT Question,id FROM question where id = %s ', str(qid))
+    ques = cursor.fetchone()
+    return render_template('answer.html', data=data, update_data=update_data, qid=qid, ques=ques)
+
+
+@app.route('/<int:id>/<name>/<ans>/ansupdate', methods=('GET', 'POST'))
+def update_as(name, ans, id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute(
+        'SELECT * FROM answers where Name = %s and Answers = %s and qid = %s', (name, ans, str(id)))
+    update_data = cursor.fetchone()
+    if request.method == 'POST':
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        as1 = request.form['name']
+        qs1 = request.form['answer']
+        cursor.execute(
+            'UPDATE answers SET  Answers = %s, Name = %s where  Name = %s and Answers = %s and id=%s ', (qs1, as1, name, ans, str(id)))
+        mysql.connection.commit()
+        sid = str(id)
+        cursor.execute(
+            'SELECT qid FROM answers where id = %s ', [sid])
+        ques = cursor.fetchall()
+        cursor.execute('SELECT * FROM answers')
+        update_data = cursor.fetchall()
+        cursor.execute(
+            'SELECT Question FROM question where id = %s ', [ques[0]['qid']])
+        ques1 = cursor.fetchone()
+        return render_template('answer.html', update_data=update_data, ques=ques1, qid=ques[0]['qid'], data=update_data)
+    return render_template('update_ans.html', update_data=update_data)
 
 
 app.run(use_reloader=True)

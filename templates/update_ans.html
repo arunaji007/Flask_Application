@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        Simple Application
+    </title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            Flask Application
+        </h1>
+        {% if not update_data.vars %}
+        <form method="post" action="{{ url_for('update_as',name=update_data.Name,ans=update_data.Answers,
+        id=update_data.id, qid=qid )}}">
+        <label>Name: </label>
+            <br>
+            <input type="text" placeholder="Name" name="name">
+            <br>
+            <label>Answer: </label>
+            <br>
+            <textarea name="answer" placeholder="Answer" cols="20" rows="5">{{update_data.Answers}}</textarea>
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+        {% endif %}
+        </div>
+        </body>
+        
+        </html>
