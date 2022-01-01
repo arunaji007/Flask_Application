@@ -13,7 +13,7 @@ app.config['MYSQL_HOST'] = 'localhost'
 
 app.config['MYSQL_USER'] = 'root'
 
-app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_PASSWORD'] = '601msdZIVA'
 
 app.config['MYSQL_DB'] = 'devops'
 
@@ -28,6 +28,7 @@ def main():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM question")
     total = cursor.fetchall()
+    print(total)
     cursor.execute(
         'SELECT * FROM question order by q_date desc LIMIT %s OFFSET %s', (per_page, offset))
     question = cursor.fetchall()
@@ -36,6 +37,7 @@ def main():
                             offset=offset, total=len(total))
     if question:
         return render_template('index.html', val_questions=question, pagination=pagination)
+    return redirect('/')
     return render_template('index.html', pagination=pagination)
 
 
@@ -63,15 +65,19 @@ def index():
     return render_template('index.html', val_questions=question, pagination=pagination)
 
 
-@app.route('/<name>/<qs>/', methods=('GET', 'POST'))
+@app.route('/<name>/<qs>/delete', methods=('GET', 'POST'))
 def delete_qs(name, qs):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute(
         'SELECT id from question where Name=%s and Question=%s', (name, qs))
     data = cursor.fetchone()
     id = data['id']
-    cursor.execute(
-        'DELETE FROM answers WHERE qid = %s', str(id))
+    cursor.execute('SELECT * FROM answers where qid=%s', [id])
+    ans = cursor.fetchall()
+    no_ans = len(ans)
+    if no_ans > 0:
+        cursor.execute(
+            'DELETE FROM answers WHERE qid = %s', str(id))
     cursor.execute(
         'DELETE FROM question WHERE Name = %s and Question = %s', (name, qs))
     mysql.connection.commit()
@@ -87,10 +93,10 @@ def delete_qs(name, qs):
     question = cursor.fetchall()
     pagination = Pagination(page=page, per_page=per_page,
                             offset=offset, total=len(total))
-    return render_template('index.html', val_questions=question, pagination=pagination)
+    return redirect('/')
 
 
-@app.route('/<name>/<qs>/update', methods=('GET', 'POST'))
+@ app.route('/<name>/<qs>/update', methods=('GET', 'POST'))
 def update_qs(name, qs):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute(
@@ -114,13 +120,14 @@ def update_qs(name, qs):
         question = cursor.fetchall()
         pagination = Pagination(page=page, per_page=per_page,
                                 offset=offset, total=len(total))
+        return redirect('/')
         return render_template('index.html', val_questions=question, pagination=pagination)
     return render_template('update.html', update_data=update_data)
 
 
-@app.route("/<int:qid>/answer", methods=('POST', 'GET'))
+@ app.route("/<int:qid>/answer", methods=('POST', 'GET'))
 def get_answers(qid):
-    cursor = mysql.connection.cursor(MySQLdb.cursors.   DictCursor)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute(
         'SELECT id,Name, Answers FROM answers where qid = %s', (str(qid)))
     update_data = cursor.fetchone()
@@ -132,51 +139,111 @@ def get_answers(qid):
             'INSERT into answers(Name, Answers, qid) values(%s,%s,%s) ', (ns1, as1, qid))
         mysql.connection.commit()
         cursor.execute(
-            'SELECT * FROM answers order by a_date desc ')
+            'SELECT * FROM answers where qid = %s order by a_date desc ', (str(qid)))
         answer = cursor.fetchall()
         cursor.execute(
             'SELECT Question FROM question where id = %s ', str(qid))
         ques = cursor.fetchone()
+        print('--------answer--------')
         print(answer)
-        update_data['qid'] = qid
+        if type(update_data) == None:
+            update_data['qid'] = qid
         return render_template('answer.html', data=answer, qid=qid, ques=ques, update_data=update_data)
 
-    update_data['qid'] = qid
+    if type(update_data) == None:
+        update_data['qid'] = qid
 
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute(
         'SELECT id,Name, Answers FROM answers where qid = %s order by a_date desc', str(qid))
+    print("------------data--------------")
+
     data = cursor.fetchall()
+    data = list(data)
+    print(data)
     cursor.execute(
         'SELECT Question,id FROM question where id = %s ', str(qid))
     ques = cursor.fetchone()
+    print("---------------ques-----------")
+    print(ques)
+    for i in range(len(data)):
+        data[i]['qid'] = qid
+    print("------")
     return render_template('answer.html', data=data, update_data=update_data, qid=qid, ques=ques)
 
 
-@app.route('/<int:id>/<name>/<ans>/ansupdate', methods=('GET', 'POST'))
-def update_as(name, ans, id):
+@ app.route('/<int:id>/<name>/<ans>/<int:qid>/ansupdate', methods=('GET', 'POST'))
+def update_as(name, ans, id, qid):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    print(id)
+    print(name)
+    print(ans)
+    print(qid)
     cursor.execute(
-        'SELECT * FROM answers where Name = %s and Answers = %s and qid = %s', (name, ans, str(id)))
+        'SELECT * FROM answers where Name = %s and Answers = %s and qid = %s', (name, ans, (qid)))
     update_data = cursor.fetchone()
+    print('-------------------------update--------------------------')
+    cursor.execute(
+        'SELECT Question FROM question where id = %s ', [id])
+    dat_q = cursor.fetchone()
     if request.method == 'POST':
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         as1 = request.form['name']
         qs1 = request.form['answer']
         cursor.execute(
-            'UPDATE answers SET  Answers = %s, Name = %s where  Name = %s and Answers = %s and id=%s ', (qs1, as1, name, ans, str(id)))
+            'UPDATE answers SET  Answers = %s, Name = %s where  Name = %s and Answers = %s and id=%s ', (qs1, as1, name, ans, [id]))
         mysql.connection.commit()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         sid = str(id)
         cursor.execute(
             'SELECT qid FROM answers where id = %s ', [sid])
         ques = cursor.fetchall()
-        cursor.execute('SELECT * FROM answers')
+        cursor.execute(
+            'SELECT * FROM answers where qid = %s order by a_date desc ', (str(qid)))
         update_data = cursor.fetchall()
         cursor.execute(
             'SELECT Question FROM question where id = %s ', [ques[0]['qid']])
         ques1 = cursor.fetchone()
-        return render_template('answer.html', update_data=update_data, ques=ques1, qid=ques[0]['qid'], data=update_data)
-    return render_template('update_ans.html', update_data=update_data)
+        print("ques1", ques1)
+        print(type(ques1))
+        print("update_date", update_data)
+        print(type(update_data))
+        return redirect('/'+str(ques[0]['qid'])+'/answer')
+        return render_template('answer.html', update_data=update_data, ques=ques1, qid=qid, data=update_data)
+    sid = str(id)
+    cursor.execute(
+        'SELECT qid FROM answers where id = %s ', [sid])
+    ques = cursor.fetchall()
+    cursor.execute(
+        'SELECT Question FROM question where id = %s ', [ques[0]['qid']])
+    ques1 = cursor.fetchone()
+    return render_template('update_ans.html', update_data=update_data, ques1=ques1, qid=qid)
+
+
+@app.route("/<int:id>/delete_ans", methods=['GET', 'POST'])
+def delete_as(id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT qid FROM answers where id=%s', [id])
+    qid_dic = cursor.fetchone()
+    qid = qid_dic['qid']
+    cursor.execute(
+        'DELETE FROM answers WHERE id = %s', [id])
+    mysql.connection.commit()
+    cursor.execute(
+        'SELECT * FROM answers where qid = %s order by a_date desc ', [qid])
+    answer = cursor.fetchall()
+    cursor.execute(
+        'SELECT Question FROM question where id = %s ', str(qid))
+    ques = cursor.fetchone()
+    print('--------answer--------')
+    print(type(answer))
+    print(answer)
+    print("qid", qid)
+    print(type(qid))
+    print(ques)
+    print(type(ques))
+    return redirect('/'+str(qid)+'/answer')
+    # return render_template('answer.html', data=answer, qid=qid, ques=ques)
 
 
 app.run(use_reloader=True)

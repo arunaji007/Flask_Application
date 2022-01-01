@@ -48,12 +48,12 @@
                 <td>{{ q.Name }}</td>
                 <td>{{ q.Answers }}</td>
                     <td>
-                        <a href="{{ url_for('update_as', ans=q.Answers,name=q.Name,id=qid,qid=update_data.qid) }}" class="btn-edit" role="button">
+                        <a href="{{ url_for('update_as', ans=q.Answers,name=q.Name,id=q.id,qid=q.qid) }}" class="btn-edit" role="button">
                             Edit
                         </a>
                     </td>
-                    <td>/
-                        <a href="#" class="btn-delete" role="button">
+                    <td>
+                        <a href="{{ url_for('delete_as',id=q.id) }}" class="btn-delete" role="button">
                             Delete
                         </a>
                     </td>

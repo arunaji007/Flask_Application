@@ -12,6 +12,9 @@
         <h1>
             Flask Application
         </h1>
+        <h4>
+            {{ ques1.Question }}
+        </h4>
         {% if not update_data.vars %}
         <form method="post" action="{{ url_for('update_as',name=update_data.Name,ans=update_data.Answers,
         id=update_data.id, qid=qid )}}">
@@ -27,6 +30,5 @@
         </form>
         {% endif %}
         </div>
-        </body>
-        
-        </html>
+        </body>  
+</html>
