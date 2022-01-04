@@ -1,2 +1,13 @@
 {{ url_for('update_as',name=q.Name,qs=q.Answers) }}
 {{ url_for('delete_as',name=q.Name,qs=q.Question) }}"
+
+    per_page = 3
+    page = request.args.get(get_page_parameter(), type=int, default=1)
+    offset = (page - 1) * per_page
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM question")
+    total = cursor.fetchall()
+    print(total)
+    row = cursor.rowcount
+    pagination = Pagination(page=page, per_page=per_page,
+                            offset=offset, total=len(total))

@@ -28,7 +28,7 @@ def main():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM question")
     total = cursor.fetchall()
-    print(total)
+
     cursor.execute(
         'SELECT * FROM question order by q_date desc LIMIT %s OFFSET %s', (per_page, offset))
     question = cursor.fetchall()
@@ -37,7 +37,7 @@ def main():
                             offset=offset, total=len(total))
     if question:
         return render_template('index.html', val_questions=question, pagination=pagination)
-    return redirect('/')
+
     return render_template('index.html', pagination=pagination)
 
 
@@ -133,56 +133,63 @@ def get_answers(qid):
     update_data = cursor.fetchone()
     if request.method == 'POST':
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        per_page = 4
+        page = request.args.get(get_page_parameter(), type=int, default=1)
+        offset = (page - 1) * per_page
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("SELECT * FROM answers where qid = %s", [qid])
+        total = cursor.fetchall()
+        pagination = Pagination(page=page, per_page=per_page,
+                                offset=offset, total=len(total))
         ns1 = request.form['name']
         as1 = request.form['answer']
         cursor.execute(
             'INSERT into answers(Name, Answers, qid) values(%s,%s,%s) ', (ns1, as1, qid))
         mysql.connection.commit()
         cursor.execute(
-            'SELECT * FROM answers where qid = %s order by a_date desc ', (str(qid)))
+            'SELECT * FROM answers where qid = %s order by a_date desc LIMIT %s OFFSET %s', (qid, per_page, offset))
         answer = cursor.fetchall()
         cursor.execute(
             'SELECT Question FROM question where id = %s ', str(qid))
         ques = cursor.fetchone()
-        print('--------answer--------')
-        print(answer)
+
         if type(update_data) == None:
             update_data['qid'] = qid
-        return render_template('answer.html', data=answer, qid=qid, ques=ques, update_data=update_data)
+        return render_template('answer.html', data=answer, qid=qid, pagination=pagination, ques=ques, update_data=update_data)
 
     if type(update_data) == None:
         update_data['qid'] = qid
 
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    per_page = 4
+    page = request.args.get(get_page_parameter(), type=int, default=1)
+    offset = (page - 1) * per_page
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM answers where qid = %s", [qid])
+    total = cursor.fetchall()
+    pagination = Pagination(page=page, per_page=per_page,
+                            offset=offset, total=len(total))
     cursor.execute(
-        'SELECT id,Name, Answers FROM answers where qid = %s order by a_date desc', str(qid))
-    print("------------data--------------")
-
+        'SELECT * FROM answers where qid = %s order by a_date desc LIMIT %s OFFSET %s', (qid, per_page, offset))
     data = cursor.fetchall()
     data = list(data)
-    print(data)
+
     cursor.execute(
         'SELECT Question,id FROM question where id = %s ', str(qid))
     ques = cursor.fetchone()
-    print("---------------ques-----------")
-    print(ques)
     for i in range(len(data)):
         data[i]['qid'] = qid
-    print("------")
-    return render_template('answer.html', data=data, update_data=update_data, qid=qid, ques=ques)
+
+    return render_template('answer.html', data=data, update_data=update_data, qid=qid, ques=ques, pagination=pagination)
 
 
 @ app.route('/<int:id>/<name>/<ans>/<int:qid>/ansupdate', methods=('GET', 'POST'))
 def update_as(name, ans, id, qid):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    print(id)
-    print(name)
-    print(ans)
-    print(qid)
     cursor.execute(
         'SELECT * FROM answers where Name = %s and Answers = %s and qid = %s', (name, ans, (qid)))
     update_data = cursor.fetchone()
-    print('-------------------------update--------------------------')
+
     cursor.execute(
         'SELECT Question FROM question where id = %s ', [id])
     dat_q = cursor.fetchone()
@@ -204,10 +211,7 @@ def update_as(name, ans, id, qid):
         cursor.execute(
             'SELECT Question FROM question where id = %s ', [ques[0]['qid']])
         ques1 = cursor.fetchone()
-        print("ques1", ques1)
-        print(type(ques1))
-        print("update_date", update_data)
-        print(type(update_data))
+
         return redirect('/'+str(ques[0]['qid'])+'/answer')
         return render_template('answer.html', update_data=update_data, ques=ques1, qid=qid, data=update_data)
     sid = str(id)
@@ -235,15 +239,10 @@ def delete_as(id):
     cursor.execute(
         'SELECT Question FROM question where id = %s ', str(qid))
     ques = cursor.fetchone()
-    print('--------answer--------')
-    print(type(answer))
-    print(answer)
-    print("qid", qid)
-    print(type(qid))
-    print(ques)
-    print(type(ques))
+
     return redirect('/'+str(qid)+'/answer')
     # return render_template('answer.html', data=answer, qid=qid, ques=ques)
 
 
 app.run(use_reloader=True)
+
